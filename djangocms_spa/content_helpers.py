@@ -118,7 +118,7 @@ def get_frontend_data_dict_for_plugin(request, plugin, editable):
         json_data = renderer.render(request=request, plugin=plugin, instance=instance, editable=editable)
 
     if hasattr(plugin, 'parse_child_plugins') and plugin.parse_child_plugins:
-        children = []
+        children = json_data.get('plugins', [])
         for child_plugin in instance.get_children().order_by(settings.DJANGOCMS_SPA_PLUGIN_ORDER_FIELD):
             # Parse all children
             children.append(
@@ -230,6 +230,5 @@ def get_global_placeholder_data(placeholder_frontend_data_dict):
 def get_language_links(cms_page, request):
     language_links = {}
     for language_code, language in settings.LANGUAGES:
-        if language_code != request.LANGUAGE_CODE:
-            language_links[language_code] = cms_page.get_absolute_url(language=language_code)
+        language_links[language_code] = cms_page.get_absolute_url(language=language_code)
     return language_links

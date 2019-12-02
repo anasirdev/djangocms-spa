@@ -1,10 +1,11 @@
+from appconf import AppConf
 from cms.utils.urlutils import admin_reverse
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from menus.menu_pool import MenuRenderer
 
-from appconf import AppConf
+from djangocms_spa.json import LazyJSONEncoder
 
 
 class DjangoCmsSPAConf(AppConf):
@@ -24,6 +25,31 @@ class DjangoCmsSPAConf(AppConf):
     # this is changed in the future.
     PLUGIN_ORDER_FIELD = 'position'
     PARTIAL_CALLBACKS = {}
+    JSON_ENCODER = LazyJSONEncoder
+    COMPONENT_PREFIX = 'dyn-'
+    COMPONENT_NAMES = {}
+
+    def configure(self):
+        component_prefix = self.configured_data['COMPONENT_PREFIX']
+        component_names = {
+            'django.forms.widgets.CheckboxInput': component_prefix + 'form-field-toggle',
+            'django.forms.widgets.CheckboxSelectMultiple': component_prefix + 'form-field-checkbox',
+            'django.forms.widgets.EmailInput': component_prefix + 'form-field-input',
+            'django.forms.widgets.HiddenInput': component_prefix + 'form-field-hidden',
+            'django.forms.widgets.NumberInput': component_prefix + 'form-field-input',
+            'django.forms.widgets.PasswordInput': component_prefix + 'form-field-input',
+            'django.forms.widgets.PhoneNumberWidget': component_prefix + 'form-field-phone',
+            'django.forms.widgets.RadioSelect': component_prefix + 'form-field-radio',
+            'django.forms.widgets.Select': component_prefix + 'form-field-select',
+            'django.forms.widgets.Textarea': component_prefix + 'form-field-textarea',
+            'django.forms.widgets.TextInput': component_prefix + 'form-field-input',
+        }
+
+        for key, value in self.configured_data['COMPONENT_NAMES'].items():
+            component_names[key] = value
+        self.configured_data['COMPONENT_NAMES'] = component_names
+
+        return self.configured_data
 
 
 class DjangoCmsMixin(models.Model):
@@ -75,5 +101,6 @@ def set_menu_renderer_context(self, context):
     Monkey patch the MenuRenderer by adding a helper method to store the context.
     """
     self.context = context
+
 
 MenuRenderer.set_context = set_menu_renderer_context
